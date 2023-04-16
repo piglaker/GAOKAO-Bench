@@ -26,4 +26,7 @@ remake_choice_answer.py
 score_statistics.py
 test.py
 warn.log
+choice_test.py
+file_rename.py
+choice_evaluation.py
 
