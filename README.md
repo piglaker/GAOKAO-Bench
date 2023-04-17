@@ -26,7 +26,7 @@ In the past six months, OpenAI has released GPT-3.5-turbo and GPT-4, which have 
 | 2010-2013_English_MCQs               | 105                 |
 | 2010-2022_English_Reading_Comp       | 124                 |
 | 2010-2022_Chinese_Modern_Lit         | 29                  |
-| 2010-2022_Chinese_Lang_&_Usage_MCQs  | 56                  |
+| 2010-2022_Chinese_Lang_and_Usage_MCQs| 56                  |
 | 2010-2022_Political_Science_MCQs     | 320                 |
 | 2010-2022_Math_I_MCQs                | 214                 |
 | 2010-2022_Biology_MCQs               | 150                 |
