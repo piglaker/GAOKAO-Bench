@@ -4,7 +4,7 @@ import json
 import time
 
 if __name__ == "__main__":
-    with open("填空题prompt.json", "r") as f:
+    with open("FBQ_prompt.jsonr") as f:
         data = json.load(f)
         f.close()
 
@@ -33,7 +33,6 @@ if __name__ == "__main__":
             question_type
         )
 
-        print('api get!')
         export_union_json(
             directory, 
             model_name, 

@@ -1,10 +1,11 @@
-# 选择题测试
+
 import os
 import json
 import openai
 import time
 import re
 from random import choice
+import requests
 
 
 def get_api_key(filename,start_num,end_num):
@@ -56,7 +57,7 @@ def choice_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception:', e)
                     openai.api_key = choice(api_key_list)
                     time.sleep(1)
                 
@@ -77,25 +78,69 @@ def choice_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception:', e)
                     openai.api_key = choice(api_key_list)
                     time.sleep(1)
                 
             time.sleep(1)
+
+        elif model_name == 'moss':
+            class MossAPI:
+                def __init__(self, api_key):
+                    self.api_key = api_key
+                    self.api_url = "http://175.24.207.250/api/inference"
+                    self.headers = {
+                        "apikey": self.api_key
+                    }
+
+                def send_request(self, request, context=None):
+                    data = {
+                        "request": request
+                    }
+
+                    if context:
+                        data["context"] = context
+
+                    response = requests.post(self.api_url, headers=self.headers, json=data)
+                    return response.json()
+            
+            api_key = choice(api_key_list)
+            moss_api = MossAPI(api_key)
+
+            question = data['example'][i]['question'].strip() + '\n'
+
+            request_text = zero_shot_prompt_text + question
+            while True:
+                try:
+                    response = moss_api.send_request(request_text)
+                    if 'response' in response.keys():
+                        response = response['response']
+                        print(data['example'][i]['index'])
+                        break
+                    if 'code' in response.keys():
+                        print(response['code'])
+                        print(response['message'])
+                        response = response['message']
+                        break
+                except: 
+                    time.sleep(4)
+
 
         if model_name == "gpt-3.5-turbo":
             model_output = output['choices'][0]['message']['content']
 
         elif model_name == 'text-davinci-003':
             model_output = output['choices'][0]['text']
+        
+        elif model_name == 'moss': 
+            model_output = response
 
         if question_type == 'single_choice':
             model_answer = []
             temp = re.findall(r'[A-D]', model_output[::-1])
             if len(temp) != 0:
                 model_answer.append(temp[0])
-                
-
+        
         elif question_type == 'multi_question_choice':
             model_answer = []
             temp = re.findall(r"【答案】\s*[:：]*\s*[A-Z]", model_output)
@@ -129,13 +174,14 @@ def choice_test(**kwargs):
         elif question_type == 'five_out_of_seven':
             model_answer = []
             temp = re.findall(r'[A-G]', model_output)
-            for i in range(min(5, len(temp))):
-                model_answer.append(temp[i])
+            for k in range(min(5, len(temp))):
+                model_answer.append(temp[k])
             
         dict = {
             'index': i, 
             'year': data['example'][i]['year'], 
             'category': data['example'][i]['category'],
+            'score': data['example'][i]['score'],
             'question': question, 
             'standard_answer': data['example'][i]['answer'],
             'analysis': data['example'][i]['analysis'],
@@ -144,7 +190,7 @@ def choice_test(**kwargs):
         }
         model_answer_dict.append(dict)
 
-    file_name = model_name+"_分散json文件_"+keyword+f"_第{start_num}题-第{end_num-1}题.json"
+    file_name = model_name+"_seperate_"+keyword+f"_{start_num}-{end_num-1}.json"
     file_path = os.path.join(save_directory, file_name)
     with open(file_path, 'w') as f:
         output = {'example' : model_answer_dict}
@@ -197,7 +243,7 @@ def cloze_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception:', e)
                     openai.api_key = choice(api_key_list)
 
         elif model_name == 'text-davinci-003':
@@ -216,7 +262,7 @@ def cloze_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception:', e)
                     openai.api_key = choice(api_key_list)
                     time.sleep(1)
                 
@@ -243,7 +289,7 @@ def cloze_test(**kwargs):
         }
         model_answer_dict.append(dict)
 
-    file_name = model_name+"_分散json文件_"+keyword+f"_第{start_num}题-第{end_num-1}题.json"
+    file_name = model_name+"_seperate_"+keyword+f"_{start_num}-{end_num-1}.json"
     file_path = os.path.join(save_directory, file_name)
     with open(file_path, 'w') as f:
         output = {'example' : model_answer_dict}
@@ -309,7 +355,7 @@ def subjective_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception:', e)
                     openai.api_key = choice(api_key_list)
         
         elif model_name == 'text-davinci-003':
@@ -326,7 +372,7 @@ def subjective_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception:', e)
                     openai.api_key = choice(api_key_list)
                     time.sleep(1)
                 
@@ -351,7 +397,7 @@ def subjective_test(**kwargs):
         }
         model_answer_dict.append(dict)
 
-    file_name = model_name+"_分散json文件_"+keyword+f"_第{start_num}题-第{end_num-1}题.json"
+    file_name = model_name+"_seperate_"+keyword+f"_{start_num}-{end_num-1}.json"
     file_path = os.path.join(save_directory, file_name)
     with open(file_path, 'w') as f:
         output = {'example' : model_answer_dict}
@@ -393,7 +439,7 @@ def correction_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception:', e)
                     openai.api_key = choice(api_key_list)
         
         elif model_name == 'text-davinci-003':
@@ -410,7 +456,7 @@ def correction_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception', e)
                     openai.api_key = choice(api_key_list)
                     time.sleep(1)
                 
@@ -453,7 +499,7 @@ def correction_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception', e)
                     openai.api_key = choice(api_key_list)
 
         elif model_name == 'text-davinci-003':
@@ -470,7 +516,7 @@ def correction_test(**kwargs):
                     )
                     break
                 except Exception as e:
-                    print('发生异常：', e)
+                    print('Exception', e)
                     openai.api_key = choice(api_key_list)
                     time.sleep(1)
             
@@ -509,7 +555,7 @@ def correction_test(**kwargs):
         }
         model_answer_dict.append(dict)
         
-    file_name = model_name+"_分散json文件_"+keyword+f"_第{start_num}题-第{end_num-1}题.json"
+    file_name = model_name+"_seperate_"+keyword+f"_{start_num}-{end_num-1}.json"
     file_path = os.path.join(save_directory, file_name)
     with open(file_path, 'w') as f:
         output = {'example' : model_answer_dict}
@@ -523,11 +569,10 @@ def export_union_json(directory, model_name, keyword,zero_shot_prompt_text ,ques
     for root, dirs, files in os.walk(save_directory):
         for file in files:
             if file.endswith(".json") and keyword in file:
-            # 如果文件名中包含关键字并且是JSON文件
+            
                 filepath = os.path.join(root, file)
-                print("开始整合json文件...")
-                print("打开文件：",filepath)
-                # 打开JSON文件并加载数据
+                print("Start to merge json files")
+                
                 with open(filepath, "r") as f:
                     data = json.load(f)
                     output.extend(data['example'])
@@ -548,6 +593,8 @@ def export_distribute_json(api_key_list, model_name, temperature, directory, key
                     data = json.load(f)
     
     example_num = len(data['example'])
+        
+
     kwargs_list = []
 
     from joblib import Parallel, delayed
@@ -558,6 +605,22 @@ def export_distribute_json(api_key_list, model_name, temperature, directory, key
 
     save_directory = os.path.join(directory, f'{model_name}_{keyword}')
     os.system(f'mkdir {save_directory}')
+
+    if question_type == "single_choice"  or question_type == "five_out_of_seven" or question_type == 'multi_question_choice' or question_type == "multi_choice":
+        kwargs = {
+            'api_key_list': api_key_list,
+            'start_num': 0, 
+            'end_num': example_num, 
+            'model_name': model_name, 
+            'data': data, 
+            'keyword': keyword, 
+            'zero_shot_prompt_text': zero_shot_prompt_text, 
+            'temperature': temperature, 
+            'question_type': question_type, 
+            'save_directory': save_directory
+                    }
+        choice_test(**kwargs)
+        return
 
     for idx in range(num_cores):
         start_num = idx * batch_size

@@ -5,7 +5,7 @@ import time
 
 
 if __name__ == "__main__":
-    with open("主观题prompt.json", "r") as f:
+    with open("OEQ_prompt.json", "r") as f:
         data = json.load(f)
         f.close()
 
@@ -33,8 +33,6 @@ for i in range(len(data['examples'])):
             zero_shot_prompt_text, 
             question_type
             )
-        
-        print('api get!')
         
         export_union_json(
             directory,
