@@ -150,8 +150,9 @@ def choice_test(**kwargs):
                     model_answer.append(re.findall(r'[A-Z]', t)[0])
             else:
                 temp = re.findall(r"[A-Z]", model_output)
-                for k in range(min(len(temp), len(data['example'][i]['answer']))):
-                    model_answer.append(temp[k])
+                if len(temp) > 0:
+                    for k in range(min(len(temp), len(data['example'][i]['answer']))):
+                        model_answer.append(temp[k])
                 
         elif question_type == "multi_choice":
             model_answer = []
@@ -174,8 +175,9 @@ def choice_test(**kwargs):
         elif question_type == 'five_out_of_seven':
             model_answer = []
             temp = re.findall(r'[A-G]', model_output)
-            for k in range(min(5, len(temp))):
-                model_answer.append(temp[k])
+            if len(temp) > 0:
+                for k in range(min(5, len(temp))):
+                    model_answer.append(temp[k])
             
         dict = {
             'index': i, 
@@ -196,8 +198,6 @@ def choice_test(**kwargs):
         output = {'example' : model_answer_dict}
         json.dump(output, f, ensure_ascii=False, indent=4)
         f.close()
-
-
 
 def cloze_test(**kwargs):
     api_key_list = kwargs['api_key_list']
@@ -267,12 +267,58 @@ def cloze_test(**kwargs):
                     time.sleep(1)
                 
             time.sleep(1)
+        
+        elif model_name == 'moss':
+            class MossAPI:
+                def __init__(self, api_key):
+                    self.api_key = api_key
+                    self.api_url = "http://175.24.207.250/api/inference"
+                    self.headers = {
+                        "apikey": self.api_key
+                    }
+
+                def send_request(self, request, context=None):
+                    data = {
+                        "request": request
+                    }
+
+                    if context:
+                        data["context"] = context
+
+                    response = requests.post(self.api_url, headers=self.headers, json=data)
+                    return response.json()
+            
+            api_key = choice(api_key_list)
+            moss_api = MossAPI(api_key)
+
+            question = data['example'][i]['question'].strip() + '\n'
+
+            request_text = zero_shot_prompt_text + question
+            while True:
+                try:
+                    response = moss_api.send_request(request_text)
+                    if 'response' in response.keys():
+                        response = response['response']
+                        print(data['example'][i]['index'])
+                        break
+                    if 'code' in response.keys():
+                        print(response['code'])
+                        print(response['message'])
+                        response = response['message']
+                        break
+                except: 
+                    time.sleep(4)
+            
+
 
         if model_name == "gpt-3.5-turbo":
             model_output = output['choices'][0]['message']['content']
 
         elif model_name == 'text-davinci-003':
             model_output = output['choices'][0]['text']
+        
+        elif model_name == 'moss':
+            model_output = response
 
             
         time.sleep(5)
@@ -469,7 +515,6 @@ def correction_test(**kwargs):
             model_output_1 = output['choices'][0]['text']
             
         time.sleep(5)
-
         
         start_idx = model_output_1.find('【答案】')
         end_idx = model_output_1.find('<eoa>')
@@ -605,22 +650,6 @@ def export_distribute_json(api_key_list, model_name, temperature, directory, key
 
     save_directory = os.path.join(directory, f'{model_name}_{keyword}')
     os.system(f'mkdir {save_directory}')
-
-    if question_type == "single_choice"  or question_type == "five_out_of_seven" or question_type == 'multi_question_choice' or question_type == "multi_choice":
-        kwargs = {
-            'api_key_list': api_key_list,
-            'start_num': 0, 
-            'end_num': example_num, 
-            'model_name': model_name, 
-            'data': data, 
-            'keyword': keyword, 
-            'zero_shot_prompt_text': zero_shot_prompt_text, 
-            'temperature': temperature, 
-            'question_type': question_type, 
-            'save_directory': save_directory
-                    }
-        choice_test(**kwargs)
-        return
 
     for idx in range(num_cores):
         start_num = idx * batch_size

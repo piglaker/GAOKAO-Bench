@@ -15,7 +15,7 @@ if __name__ == "__main__":
         api_key_filename = ""
         api_key_list = get_api_key(api_key_filename, start_num=0, end_num = 1)
     
-        model_name = 'moss'
+        model_name = 'gpt-3.5-turbo'
         temperature = 0.3
         keyword = data['examples'][i]['keyword']
 
@@ -23,9 +23,6 @@ if __name__ == "__main__":
         zero_shot_prompt_text = data['examples'][i]['prefix_prompt']
         print(keyword)
         print(question_type)
-
-        if keyword == "2010-2022_Chinese_Modern_Lit.":
-            continue
 
         export_distribute_json(
             api_key_list, 
