@@ -12,7 +12,7 @@ if __name__ == "__main__":
 for i in range(len(data['examples'])):
     directory = "../data"
 
-    api_key_filename = "zxt-50.txt"
+    api_key_filename = "your_api_key.txt"
     api_key_list = get_api_key(api_key_filename, start_num=0, end_num = 1)
     
 
