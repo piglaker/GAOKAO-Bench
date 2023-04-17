@@ -6,6 +6,7 @@ import time
 import re
 from random import choice
 import requests
+from tqdm import  tqdm
 
 
 def get_api_key(filename,start_num,end_num):
@@ -24,8 +25,7 @@ def choice_test(**kwargs):
     api_key_list = kwargs['api_key_list']
     start_num = kwargs['start_num']
     end_num = kwargs['end_num']
-    print(start_num)
-    print(end_num)
+    
     model_name = kwargs['model_name']
     data = kwargs['data']
     keyword = kwargs['keyword']
@@ -38,7 +38,7 @@ def choice_test(**kwargs):
    
     model_answer_dict = []
 
-    for i in range(start_num, end_num):
+    for i in tqdm(range(start_num, end_num)):
 
         if model_name == "gpt-3.5-turbo":
             zero_shot_prompt_message = {'role': 'system', 'content': zero_shot_prompt_text}
@@ -115,7 +115,6 @@ def choice_test(**kwargs):
                     response = moss_api.send_request(request_text)
                     if 'response' in response.keys():
                         response = response['response']
-                        print(data['example'][i]['index'])
                         break
                     if 'code' in response.keys():
                         print(response['code'])
@@ -203,8 +202,7 @@ def cloze_test(**kwargs):
     api_key_list = kwargs['api_key_list']
     start_num = kwargs['start_num']
     end_num = kwargs['end_num']
-    print(start_num)
-    print(end_num)
+    
     model_name = kwargs['model_name']
     data = kwargs['data']
     keyword = kwargs['keyword']
@@ -219,7 +217,7 @@ def cloze_test(**kwargs):
     model_answer_dict = []
 
 
-    for i in range(start_num, end_num):
+    for i in tqdm(range(start_num, end_num)):
 
         if model_name == 'gpt-3.5-turbo':
 
@@ -299,7 +297,6 @@ def cloze_test(**kwargs):
                     response = moss_api.send_request(request_text)
                     if 'response' in response.keys():
                         response = response['response']
-                        print(data['example'][i]['index'])
                         break
                     if 'code' in response.keys():
                         print(response['code'])
@@ -348,8 +345,7 @@ def subjective_test(**kwargs):
     start_num = kwargs["start_num"]
     end_num = kwargs["end_num"]
 
-    print(start_num)
-    print(end_num)
+
 
     model_name = kwargs["model_name"]
     data = kwargs["data"]
@@ -364,7 +360,7 @@ def subjective_test(**kwargs):
     standard_answer = []
     model_answer_dict = []
 
-    for i in range(start_num, end_num):
+    for i in tqdm(range(start_num, end_num)):
         standard_answer.append(data['example'][i]['answer'])
 
         if 'passage' in data['example'][i].keys():
@@ -465,7 +461,7 @@ def correction_test(**kwargs):
     save_directory = kwargs['save_directory']
     model_answer_dict = []
 
-    for i in range(start_num, end_num):
+    for i in tqdm(range(start_num, end_num)):
         openai.api_key = choice(api_key_list)
         standard_answer = []
         standard_answer.append(data['example'][i]['answer'])
@@ -608,7 +604,7 @@ def correction_test(**kwargs):
         f.close()
 
 
-def export_union_json(directory, model_name, keyword,zero_shot_prompt_text ,question_type):
+def export_union_json(directory, model_name, keyword, zero_shot_prompt_text, question_type):
     output = []
     save_directory = os.path.join(directory, f'{model_name}_{keyword}')
     for root, dirs, files in os.walk(save_directory):
@@ -629,7 +625,7 @@ def export_union_json(directory, model_name, keyword,zero_shot_prompt_text ,ques
 
 
 
-def export_distribute_json(api_key_list, model_name, temperature, directory, keyword, zero_shot_prompt_text, question_type):
+def export_distribute_json(api_key_list, model_name, temperature, directory, keyword, zero_shot_prompt_text, question_type, parallel_num=5):
     for root, _, files in os.walk(directory):
         for file in files:
             if file == f'{keyword}.json':
@@ -645,13 +641,12 @@ def export_distribute_json(api_key_list, model_name, temperature, directory, key
     from joblib import Parallel, delayed
     import multiprocessing
 
-    num_cores = multiprocessing.cpu_count()
-    batch_size = example_num // num_cores + 1
+    batch_size = example_num // parallel_num + 1
 
     save_directory = os.path.join(directory, f'{model_name}_{keyword}')
     os.system(f'mkdir {save_directory}')
-
-    for idx in range(num_cores):
+        
+    for idx in range(parallel_num):
         start_num = idx * batch_size
         end_num = min(start_num+batch_size, example_num)
         if start_num >= example_num:
@@ -671,13 +666,13 @@ def export_distribute_json(api_key_list, model_name, temperature, directory, key
         kwargs_list.append(kwargs)
     
     if question_type == "single_choice"  or question_type == "five_out_of_seven" or question_type == 'multi_question_choice' or question_type == "multi_choice":
-        Parallel(n_jobs=num_cores)(delayed(choice_test)(**kwargs) for kwargs in kwargs_list)
+        Parallel(n_jobs=parallel_num)(delayed(choice_test)(**kwargs) for kwargs in kwargs_list)
     if question_type == "subjective":
-        Parallel(n_jobs=num_cores)(delayed(subjective_test)(**kwargs) for kwargs in kwargs_list)
+        Parallel(n_jobs=parallel_num)(delayed(subjective_test)(**kwargs) for kwargs in kwargs_list)
     if question_type == 'correction':
-        Parallel(n_jobs=num_cores)(delayed(correction_test)(**kwargs) for kwargs in kwargs_list)
+        Parallel(n_jobs=parallel_num)(delayed(correction_test)(**kwargs) for kwargs in kwargs_list)
     if question_type == "cloze":
-        Parallel(n_jobs=num_cores)(delayed(cloze_test)(**kwargs) for kwargs in kwargs_list)
+        Parallel(n_jobs=parallel_num)(delayed(cloze_test)(**kwargs) for kwargs in kwargs_list)
     
         
 

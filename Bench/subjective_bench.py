@@ -10,14 +10,16 @@ if __name__ == "__main__":
         f.close()
 
 for i in range(len(data['examples'])):
+        directory = ""
 
         api_key_filename = ""
         api_key_list = get_api_key(api_key_filename, start_num=0, end_num=1)
+
+
         model_name = 'gpt-3.5-turbo'
         temperature = 0.3
-        directory = ""
-        keyword = data['examples'][i]['keyword']
         
+        keyword = data['examples'][i]['keyword']
         question_type = data['examples'][i]['type']
         
         zero_shot_prompt_text = data['examples'][i]['prefix_prompt']
@@ -31,7 +33,8 @@ for i in range(len(data['examples'])):
             directory, 
             keyword, 
             zero_shot_prompt_text, 
-            question_type
+            question_type, 
+            parallel_num=5
             )
         
         export_union_json(
