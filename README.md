@@ -73,7 +73,7 @@ The format of the model output is as follows:
 
 We have counted the Gaokao scores of gpt-3.5-turbo in previous years:
 
-![image-20230417150813142](/Users/lichunyang/Library/Application Support/typora-user-images/image-20230417150813142.png)
+![](./img/score_of_previous_year.png)
 
 ## Evaluation
 
@@ -104,7 +104,7 @@ You can run the [score_evaluation.py](https://github.com/OpenLMLab/GAOKAO-Bench/
    your_openai_account|your_openai_password|your_api_key
    ```
 
-   Place it in the `GAOKAO-BENCH/data` directory
+   Place it in the `GAOKAO-Bench/data` directory
 
 2. Execute the following command to generate the answer of the model
 
@@ -129,7 +129,7 @@ You can run the [score_evaluation.py](https://github.com/OpenLMLab/GAOKAO-Bench/
 
 #### Your model
 
-1. Use your model to generate corresponding model output files for the files in the Multiple-choice_Questions directory. The format is as shown in "Model output" above. The file name is `"model_name_question_name.json"`, and it is placed in the `GAOKAO-BENCH/data` directory. like this
+1. Use your model to generate corresponding model output files for the files in the Multiple-choice_Questions directory. The format is as shown in "Model output" above. The file name is `"model_name_question_name.json"`, and it is placed in the `GAOKAO-Bench/data` directory. like this
 
    ```
    data/
