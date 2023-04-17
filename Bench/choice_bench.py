@@ -10,9 +10,9 @@ if __name__ == "__main__":
 
     
     for i in range(len(data['examples'])):
-        directory = ""
+        directory = "../data"
 
-        api_key_filename = ""
+        api_key_filename = "zxt-50.txt"
         api_key_list = get_api_key(api_key_filename, start_num=0, end_num = 1)
     
         model_name = 'gpt-3.5-turbo'
